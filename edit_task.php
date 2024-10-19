@@ -1,25 +1,47 @@
 <?php
-include 'config.php';
 session_start();
 
-$id = $_GET['id'];
-$stmt = $pdo->prepare("SELECT * FROM tasks WHERE id = ?");
-$stmt->execute([$id]);
-$task = $stmt->fetch(PDO::FETCH_ASSOC);
+// Initialize tasks array if not set
+if (!isset($_SESSION['tasks'])) {
+    $_SESSION['tasks'] = [];
+}
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $title = ucwords($_POST['title']);
-    $description = ucwords($_POST['description']);
-    $priority = ucfirst($_POST['priority']);  // Only first letter capital
-    $deadline = $_POST['deadline'];
-    $status = ucfirst($_POST['status']); // Only first letter capital
+// Load existing tasks into session for testing purposes (you can replace this with your own data)
+if (empty($_SESSION['tasks'])) {
+    $_SESSION['tasks'] = [
+        1 => ['title' => 'Task 1', 'description' => 'Description for Task 1', 'priority' => 'low', 'deadline' => '2024-10-19T12:00', 'status' => 'pending'],
+        2 => ['title' => 'Task 2', 'description' => 'Description for Task 2', 'priority' => 'medium', 'deadline' => '2024-10-20T12:00', 'status' => 'completed'],
+    ];
+}
 
-    // Update task with the new details, including status
-    $stmt = $pdo->prepare("UPDATE tasks SET title = ?, description = ?, priority = ?, deadline = ?, status = ? WHERE id = ?");
-    $stmt->execute([$title, $description, $priority, $deadline, $status, $id]);
+// Handle editing a task
+$id = $_GET['id'] ?? null;
 
-    $_SESSION['message'] = "Task updated successfully!";
+if ($id && isset($_SESSION['tasks'][$id])) {
+    $task = $_SESSION['tasks'][$id];
 
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $title = ucwords($_POST['title']);
+        $description = ucwords($_POST['description']);
+        $priority = ucfirst($_POST['priority']);
+        $deadline = $_POST['deadline'];
+        $status = ucfirst($_POST['status']);
+
+        // Update task in the session
+        $_SESSION['tasks'][$id] = [
+            'title' => $title,
+            'description' => $description,
+            'priority' => $priority,
+            'deadline' => $deadline,
+            'status' => $status
+        ];
+
+        $_SESSION['message'] = "Task updated successfully!";
+        header("Location: index.php");
+        exit();
+    }
+} else {
+    // Redirect if task ID is invalid
     header("Location: index.php");
     exit();
 }
@@ -59,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="form-group">
                     <label for="deadline">Deadline</label>
-                    <input type="datetime-local" name="deadline" class="form-control" oninput="capitalizeFirstLetter(this)" value="<?php echo $task['deadline']; ?>">
+                    <input type="datetime-local" name="deadline" class="form-control" value="<?php echo htmlspecialchars($task['deadline']); ?>">
                 </div>
                 <div class="form-group">
                     <label for="status">Status</label>
@@ -80,11 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <script>
 function capitalizeFirstLetter(input) {
-    const words = input.value.split(' '); // Split the input into words
+    const words = input.value.split(' ');
     const capitalizedWords = words.map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() // Capitalize the first letter and make the rest lowercase
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
     );
-    input.value = capitalizedWords.join(' '); // Join the capitalized words back into a string
+    input.value = capitalizedWords.join(' ');
 }
 </script>
 

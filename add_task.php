@@ -1,42 +1,51 @@
 <?php
-include 'config.php';
 session_start(); // Start the session
 
+// Initialize tasks array in the session if it doesn't exist
+if (!isset($_SESSION['tasks'])) {
+    $_SESSION['tasks'] = [];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get task details from the form
     $title = $_POST['title'];
     $description = $_POST['description'];
     $priority = $_POST['priority'];
     $deadline = $_POST['deadline'];
 
-    $stmt = $pdo->prepare("INSERT INTO tasks (title, description, priority, deadline) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$title, $description, $priority, $deadline]);
+    // Add the new task to the session array
+    $_SESSION['tasks'][] = [
+        'title' => $title,
+        'description' => $description,
+        'priority' => $priority,
+        'deadline' => $deadline
+    ];
 
     // Set a session variable for success message
     $_SESSION['message'] = "Task successfully added!";
-    
-    header("Location: index.php");
+
+    header("Location: index.php"); // Redirect to the main page
     exit(); // Ensure no further code is executed after the redirect
 }
 ?>
 
-
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <title>Add Task</title>
-    </head>
-    <body>
-                <div class="container mt-5">
-                    <div class="card">
-                        <div class="card-header text-center">
-                            <h3>Add New Task</h3>
-                        </div>
-                        <div class="card-body">
-                            <form method="POST">
-                            <div class="form-group">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Add Task</title>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header text-center">
+            <h3>Add New Task</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group">
                     <label for="title">Title</label>
                     <input type="text" name="title" class="form-control" required oninput="capitalizeFirstLetter(this)">
                 </div>
@@ -75,7 +84,7 @@ function capitalizeFirstLetter(input) {
     input.value = capitalizedWords.join(' '); // Join the capitalized words back into a string
 }
 </script>
-</script>
 
 </body>
 </html>
+
