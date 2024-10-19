@@ -45,12 +45,12 @@ $_SESSION['tasks'] = $tasks;
                 </div>
             <?php endif; ?>
 
-            <a href="add_task.php" class="btn btn-success mb-3">Add New Task</a> <!-- Move the button here -->
+            <a href="add_task.php" class="btn btn-success mb-3">Add New Task</a>
 
             <?php if (empty($tasks)): ?>
                 <p class="text-center">No tasks added yet.</p>
             <?php else: ?>
-                <div class="table-responsive"> <!-- Added responsive wrapper for the table -->
+                <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
@@ -58,7 +58,7 @@ $_SESSION['tasks'] = $tasks;
                                 <th>Description</th>
                                 <th>Priority</th>
                                 <th>Deadline</th>
-                                <th>Actions</th> <!-- New column for actions -->
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -69,7 +69,7 @@ $_SESSION['tasks'] = $tasks;
                                     <td><?php echo htmlspecialchars($task['priority']); ?></td>
                                     <td><?php echo htmlspecialchars($task['deadline']); ?></td>
                                     <td>
-                                        <a href="edit_task.php?id=<?php echo $index; ?>"style="margin-bottom: 5px" class="btn btn-warning btn-sm">Edit</a>
+                                        <a href="edit_task.php?id=<?php echo $index; ?>" class="btn btn-success btn-sm mb-1">Edit</a>
                                         <a href="?delete=<?php echo $index; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
                                     </td>
                                 </tr>

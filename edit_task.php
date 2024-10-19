@@ -1,49 +1,42 @@
 <?php
-session_start();
+session_start(); // Start the session
 
-// Initialize tasks array if not set
-if (!isset($_SESSION['tasks'])) {
-    $_SESSION['tasks'] = [];
-}
+// Retrieve tasks from session
+$tasks = isset($_SESSION['tasks']) ? $_SESSION['tasks'] : [];
 
-// Load existing tasks into session for testing purposes (you can replace this with your own data)
-if (empty($_SESSION['tasks'])) {
-    $_SESSION['tasks'] = [
-        1 => ['title' => 'Task 1', 'description' => 'Description for Task 1', 'priority' => 'low', 'deadline' => '2024-10-19T12:00', 'status' => 'pending'],
-        2 => ['title' => 'Task 2', 'description' => 'Description for Task 2', 'priority' => 'medium', 'deadline' => '2024-10-20T12:00', 'status' => 'completed'],
-    ];
-}
-
-// Handle editing a task
-$id = $_GET['id'] ?? null;
-
-if ($id && isset($_SESSION['tasks'][$id])) {
-    $task = $_SESSION['tasks'][$id];
-
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $title = ucwords($_POST['title']);
-        $description = ucwords($_POST['description']);
-        $priority = ucfirst($_POST['priority']);
-        $deadline = $_POST['deadline'];
-        $status = ucfirst($_POST['status']);
-
-        // Update task in the session
-        $_SESSION['tasks'][$id] = [
-            'title' => $title,
-            'description' => $description,
-            'priority' => $priority,
-            'deadline' => $deadline,
-            'status' => $status
-        ];
-
-        $_SESSION['message'] = "Task updated successfully!";
-        header("Location: index.php");
-        exit();
-    }
-} else {
-    // Redirect if task ID is invalid
-    header("Location: index.php");
+// Check if an ID is provided for editing
+if (!isset($_GET['id']) || !isset($tasks[$_GET['id']])) {
+    header("Location: index.php"); // Redirect if no valid ID
     exit();
+}
+
+// Get the task to be edited
+$taskIndex = intval($_GET['id']);
+$task = $tasks[$taskIndex];
+
+// Handle form submission for editing
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $title = $_POST['title'];
+    $description = $_POST['description'];
+    $priority = $_POST['priority'];
+    $deadline = $_POST['deadline'];
+
+    // Update the task details
+    $tasks[$taskIndex] = [
+        'title' => $title,
+        'description' => $description,
+        'priority' => $priority,
+        'deadline' => $deadline,
+    ];
+
+    // Save the updated tasks back to the session
+    $_SESSION['tasks'] = $tasks;
+
+    // Set a session variable for success message
+    $_SESSION['message'] = "Task successfully updated!";
+    
+    header("Location: index.php"); // Redirect after updating
+    exit(); // Ensure no further code is executed after the redirect
 }
 ?>
 
@@ -65,33 +58,26 @@ if ($id && isset($_SESSION['tasks'][$id])) {
             <form method="POST">
                 <div class="form-group">
                     <label for="title">Title</label>
-                    <input type="text" name="title" class="form-control" oninput="capitalizeFirstLetter(this)" value="<?php echo htmlspecialchars(ucwords($task['title'])); ?>" required>
+                    <input type="text" name="title" class="form-control" value="<?php echo htmlspecialchars($task['title']); ?>" required>
                 </div>
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea name="description" class="form-control" oninput="capitalizeFirstLetter(this)"><?php echo htmlspecialchars(ucwords($task['description'])); ?></textarea>
+                    <textarea name="description" class="form-control" required><?php echo htmlspecialchars($task['description']); ?></textarea>
                 </div>
                 <div class="form-group">
                     <label for="priority">Priority</label>
                     <select name="priority" class="form-control">
-                        <option value="low" <?php echo ($task['priority'] == 'low') ? 'selected' : ''; ?>>Low</option>
-                        <option value="medium" <?php echo ($task['priority'] == 'medium') ? 'selected' : ''; ?>>Medium</option>
-                        <option value="high" <?php echo ($task['priority'] == 'high') ? 'selected' : ''; ?>>High</option>
+                        <option value="Low" <?php echo $task['priority'] == 'Low' ? 'selected' : ''; ?>>Low</option>
+                        <option value="Medium" <?php echo $task['priority'] == 'Medium' ? 'selected' : ''; ?>>Medium</option>
+                        <option value="High" <?php echo $task['priority'] == 'High' ? 'selected' : ''; ?>>High</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="deadline">Deadline</label>
                     <input type="datetime-local" name="deadline" class="form-control" value="<?php echo htmlspecialchars($task['deadline']); ?>">
                 </div>
-                <div class="form-group">
-                    <label for="status">Status</label>
-                    <select name="status" class="form-control">
-                        <option value="pending" <?php echo ($task['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                        <option value="completed" <?php echo ($task['status'] == 'completed') ? 'selected' : ''; ?>>Completed</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-success">Update</button>
-                <a href="index.php" class="btn btn-secondary">Back</a>
+                <button type="submit" class="btn btn-success">Update Task</button>
+                <a href="index.php" class="btn btn-secondary">Cancel</a>
             </form>
         </div>
         <div class="card-footer text-center">
@@ -99,16 +85,5 @@ if ($id && isset($_SESSION['tasks'][$id])) {
         </div>
     </div>
 </div>
-
-<script>
-function capitalizeFirstLetter(input) {
-    const words = input.value.split(' ');
-    const capitalizedWords = words.map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    );
-    input.value = capitalizedWords.join(' ');
-}
-</script>
-
 </body>
 </html>
